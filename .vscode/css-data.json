@@ -1,0 +1,19 @@
+{
+    "version": 1.1,
+    "atDirectives": [
+        {
+            "name": "@theme",
+            "description": "Tailwind CSS v4 theme block for defining and extending design tokens.",
+            "references": [
+                {
+                    "name": "Tailwind CSS v4 Documentation",
+                    "url": "https://tailwindcss.com/docs/v4-beta"
+                }
+            ]
+        },
+        {
+            "name": "@import \"tailwindcss\"",
+            "description": "Imports Tailwind CSS v4."
+        }
+    ]
+}
