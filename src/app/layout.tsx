@@ -44,7 +44,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     if (!user) return;
     const unsubscribe = settingsService.subscribeToSettings(user.uid, (data) => {
       if (data.theme) {
-        document.documentElement.classList.toggle('dark', data.theme === 'dark');
+        document.documentElement.classList.toggle('light', data.theme === 'light');
       }
     });
     return () => unsubscribe();
@@ -52,8 +52,11 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-background">
-        <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      <div className="h-screen w-full flex items-center justify-center bg-[#0a0a0c]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin shadow-lg shadow-primary/10" />
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 animate-pulse">Sincronizando</p>
+        </div>
       </div>
     );
   }
