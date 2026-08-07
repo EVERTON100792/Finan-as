@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { 
   UserProfile, Category, Bill, Recipe, Expense, CreditCard, 
-  Installment, Receipt, Transaction, FinancialGoal, DashboardStats 
+  Installment, Receipt, Transaction, FinancialGoal, DashboardStats, BillStatus 
 } from '../types';
 import { generateId, getTodayString } from './utils';
 
@@ -238,10 +238,22 @@ class LocalFinanceEngine {
   getExpenses(): Expense[] {
     const rawExpenses = this.getItem<Expense[]>('expenses', []);
     const cleanExpenses = rawExpenses.filter(e => !e.descricao.startsWith('Pgto: '));
-    if (cleanExpenses.length !== rawExpenses.length) {
-      this.setItem('expenses', cleanExpenses);
+    const transactions = this.getItem<Transaction[]>('transactions', []);
+
+    let modified = false;
+    const normalizedExpenses = cleanExpenses.map(e => {
+      if (!e.status) {
+        modified = true;
+        const hasTx = transactions.some(t => t.referencia_id === e.id);
+        return { ...e, status: (hasTx ? 'paga' : 'pendente') as BillStatus };
+      }
+      return e;
+    });
+
+    if (modified || cleanExpenses.length !== rawExpenses.length) {
+      this.setItem('expenses', normalizedExpenses);
     }
-    return cleanExpenses;
+    return normalizedExpenses;
   }
 
   async addExpense(expense: Omit<Expense, 'id' | 'user_id' | 'created_at'>): Promise<Expense> {
@@ -680,7 +692,7 @@ class LocalFinanceEngine {
 
     const totalRec = recipes.reduce((sum, r) => sum + Number(r.valor), 0);
     const totalExpenses = expenses
-      .filter(e => e.status === 'paga' || !e.status)
+      .filter(e => e.status === 'paga')
       .reduce((sum, e) => sum + Number(e.valor), 0);
     const totalPaidBills = bills
       .filter(b => b.status === 'paga')
@@ -707,7 +719,7 @@ class LocalFinanceEngine {
       .reduce((sum, r) => sum + Number(r.valor), 0);
 
     const paidExpensesMes = expenses
-      .filter(e => e.data.startsWith(currentYearMonth) && (e.status === 'paga' || !e.status))
+      .filter(e => e.data.startsWith(currentYearMonth) && e.status === 'paga')
       .reduce((sum, e) => sum + Number(e.valor), 0);
 
     const paidBillsMes = bills
@@ -719,7 +731,7 @@ class LocalFinanceEngine {
     const contasPendentesBills = bills.filter(b => b.status === 'pendente' || b.status === 'atrasada');
     const expensesPendentes = expenses.filter(e => e.status === 'pendente');
     const contasPagasBills = bills.filter(b => b.status === 'paga');
-    const expensesPagas = expenses.filter(e => e.status === 'paga' || !e.status);
+    const expensesPagas = expenses.filter(e => e.status === 'paga');
 
     const contasPendentesValor = 
       contasPendentesBills.reduce((sum, b) => sum + Number(b.valor), 0) +
@@ -732,7 +744,7 @@ class LocalFinanceEngine {
     const saldoPrevisto = profile.current_balance - contasPendentesValor;
 
     const despesasPorCategoria: Record<string, number> = {};
-    expenses.filter(e => e.status === 'paga' || !e.status).forEach(e => {
+    expenses.filter(e => e.status === 'paga').forEach(e => {
       despesasPorCategoria[e.categoria] = (despesasPorCategoria[e.categoria] || 0) + Number(e.valor);
     });
     bills.filter(b => b.status === 'paga').forEach(b => {
