@@ -98,11 +98,17 @@ class LocalFinanceEngine {
       ]);
 
       if (!errRec && recipes) this.setItem('recipes', recipes);
-      if (!errExp && expenses) this.setItem('expenses', expenses);
+      if (!errTx && transactions) this.setItem('transactions', transactions);
+      if (!errExp && expenses) {
+        const cleanExp = expenses.map((e: any) => ({
+          ...e,
+          status: e.status || (e.observacoes?.toLowerCase().includes('comprovante ocr') ? 'paga' : 'pendente'),
+        }));
+        this.setItem('expenses', cleanExp);
+      }
       if (!errBills && bills) this.setItem('bills', bills);
       if (!errCards && cards) this.setItem('cards', cards);
       if (!errInst && installments) this.setItem('installments', installments);
-      if (!errTx && transactions) this.setItem('transactions', transactions);
       if (!errGoals && goals) this.setItem('goals', goals);
       if (!errCat && categories && categories.length > 0) this.setItem('categories', categories);
       if (profile) this.setItem('profile', profile);
@@ -238,14 +244,13 @@ class LocalFinanceEngine {
   getExpenses(): Expense[] {
     const rawExpenses = this.getItem<Expense[]>('expenses', []);
     const cleanExpenses = rawExpenses.filter(e => !e.descricao.startsWith('Pgto: '));
-    const transactions = this.getItem<Transaction[]>('transactions', []);
 
     let modified = false;
     const normalizedExpenses = cleanExpenses.map(e => {
       if (!e.status) {
         modified = true;
-        const hasTx = transactions.some(t => t.referencia_id === e.id);
-        return { ...e, status: (hasTx ? 'paga' : 'pendente') as BillStatus };
+        const isOCRConfirmed = Boolean(e.observacoes && e.observacoes.toLowerCase().includes('comprovante ocr'));
+        return { ...e, status: (isOCRConfirmed ? 'paga' : 'pendente') as BillStatus };
       }
       return e;
     });
@@ -253,6 +258,16 @@ class LocalFinanceEngine {
     if (modified || cleanExpenses.length !== rawExpenses.length) {
       this.setItem('expenses', normalizedExpenses);
     }
+
+    const pendingExpenseIds = new Set(normalizedExpenses.filter(e => e.status === 'pendente').map(e => e.id));
+    if (pendingExpenseIds.size > 0) {
+      const rawTx = this.getItem<Transaction[]>('transactions', []);
+      const cleanTx = rawTx.filter(t => !t.referencia_id || !pendingExpenseIds.has(t.referencia_id));
+      if (cleanTx.length !== rawTx.length) {
+        this.setItem('transactions', cleanTx);
+      }
+    }
+
     return normalizedExpenses;
   }
 
@@ -323,6 +338,10 @@ class LocalFinanceEngine {
           categoria: targetExpense.categoria,
           referencia_id: targetExpense.id,
         });
+      } else {
+        const rawTx = this.getItem<Transaction[]>('transactions', []);
+        const cleanTx = rawTx.filter(t => t.referencia_id !== id);
+        this.setItem('transactions', cleanTx);
       }
 
       this.recalculateBalance();
