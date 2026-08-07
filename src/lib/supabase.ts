@@ -642,6 +642,39 @@ class LocalFinanceEngine {
     return savedItem;
   }
 
+  async deleteTransaction(id: string): Promise<void> {
+    const rawTx = this.getItem<Transaction[]>('transactions', []);
+    const targetTx = rawTx.find(t => t.id === id);
+    const cleanTx = rawTx.filter(t => t.id !== id);
+    this.setItem('transactions', cleanTx);
+
+    if (targetTx?.referencia_id) {
+      const expenses = this.getExpenses().filter(e => e.id !== targetTx.referencia_id);
+      this.setItem('expenses', expenses);
+
+      const recipes = this.getRecipes().filter(r => r.id !== targetTx.referencia_id);
+      this.setItem('recipes', recipes);
+
+      const bills = this.getBills();
+      const targetBill = bills.find(b => b.id === targetTx.referencia_id);
+      if (targetBill) {
+        targetBill.status = 'pendente';
+        this.setItem('bills', bills);
+      }
+
+      if (supabase) {
+        await supabase.from('transactions').delete().eq('id', id);
+        await supabase.from('expenses').delete().eq('id', targetTx.referencia_id);
+        await supabase.from('recipes').delete().eq('id', targetTx.referencia_id);
+        await supabase.from('bills').update({ status: 'pendente' }).eq('id', targetTx.referencia_id);
+      }
+    } else if (supabase) {
+      await supabase.from('transactions').delete().eq('id', id);
+    }
+
+    this.recalculateBalance();
+  }
+
   getGoals(): FinancialGoal[] {
     return this.getItem<FinancialGoal[]>('goals', []);
   }

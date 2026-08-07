@@ -195,6 +195,7 @@ export function useFinance() {
     addExpense: addExpenseMutation.mutateAsync,
     toggleExpense: toggleExpenseMutation.mutateAsync,
     deleteExpense: deleteExpenseMutation.mutateAsync,
+    deleteTransaction: (id: string) => localFinanceEngine.deleteTransaction(id).then(() => invalidateAll()),
     addBill: addBillMutation.mutateAsync,
     toggleBill: toggleBillMutation.mutateAsync,
     deleteBill: deleteBillMutation.mutateAsync,

@@ -4,12 +4,12 @@ import { ChartsSection } from '../components/dashboard/ChartsSection';
 import { UpcomingBills } from '../components/dashboard/UpcomingBills';
 import { FinancialCalendar } from '../components/dashboard/FinancialCalendar';
 import { useFinance } from '../hooks/useFinance';
-import { Wallet, TrendingUp, TrendingDown, Clock, CheckCircle2, DollarSign } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Clock, CheckCircle2, DollarSign, Trash2 } from 'lucide-react';
 import { Card, Badge } from '../components/ui';
 import { formatCurrency, formatDate } from '../lib/utils';
 
 export const DashboardPage: React.FC = () => {
-  const { stats } = useFinance();
+  const { stats, deleteTransaction } = useFinance();
 
   return (
     <div className="space-y-6 animate-fade-in pb-16 lg:pb-8">
@@ -105,13 +105,23 @@ export const DashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <span
-                  className={`text-sm font-extrabold ${
-                    tx.tipo === 'receita' ? 'text-emerald-400' : 'text-rose-400'
-                  }`}
-                >
-                  {tx.tipo === 'receita' ? '+' : '-'}{formatCurrency(tx.valor)}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`text-sm font-extrabold ${
+                      tx.tipo === 'receita' ? 'text-emerald-400' : 'text-rose-400'
+                    }`}
+                  >
+                    {tx.tipo === 'receita' ? '+' : '-'}{formatCurrency(tx.valor)}
+                  </span>
+
+                  <button
+                    onClick={() => deleteTransaction(tx.id)}
+                    className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors"
+                    title="Excluir Transação"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

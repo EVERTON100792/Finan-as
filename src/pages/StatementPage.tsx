@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useFinance } from '../hooks/useFinance';
-import { Card, Input } from '../components/ui';
+import { Card, Input, Button } from '../components/ui';
 import { formatCurrency, formatDate } from '../lib/utils';
-import { ListOrdered, Search, TrendingUp, TrendingDown } from 'lucide-react';
+import { ListOrdered, Search, TrendingUp, TrendingDown, Trash2, RefreshCw } from 'lucide-react';
 
 export const StatementPage: React.FC = () => {
-  const { transactions } = useFinance();
+  const { transactions, deleteTransaction, resetAllData } = useFinance();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'todos' | 'receita' | 'despesa'>('todos');
 
@@ -20,12 +20,19 @@ export const StatementPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in pb-16 lg:pb-8">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-extrabold tracking-tight text-white font-serif flex items-center gap-2">
-          <ListOrdered className="w-6 h-6 text-emerald-400" />
-          Extrato Financeiro Unificado
-        </h2>
-        <p className="text-xs text-slate-400">Histórico completo de entradas, saídas e movimentações.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-white font-serif flex items-center gap-2">
+            <ListOrdered className="w-6 h-6 text-emerald-400" />
+            Extrato Financeiro Unificado
+          </h2>
+          <p className="text-xs text-slate-400">Histórico completo de entradas, saídas e movimentações.</p>
+        </div>
+
+        <Button variant="danger" size="sm" onClick={() => resetAllData()}>
+          <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+          Zerar Histórico de Testes
+        </Button>
       </div>
 
       {/* Filter Bar */}
@@ -98,13 +105,23 @@ export const StatementPage: React.FC = () => {
                   </div>
                 </div>
 
-                <span
-                  className={`text-sm font-extrabold ${
-                    tx.tipo === 'receita' ? 'text-emerald-400' : 'text-rose-400'
-                  }`}
-                >
-                  {tx.tipo === 'receita' ? '+' : '-'}{formatCurrency(tx.valor)}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`text-sm font-extrabold ${
+                      tx.tipo === 'receita' ? 'text-emerald-400' : 'text-rose-400'
+                    }`}
+                  >
+                    {tx.tipo === 'receita' ? '+' : '-'}{formatCurrency(tx.valor)}
+                  </span>
+
+                  <button
+                    onClick={() => deleteTransaction(tx.id)}
+                    className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors"
+                    title="Excluir do Histórico"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
