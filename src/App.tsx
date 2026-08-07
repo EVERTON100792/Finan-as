@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { MobileNav } from './components/layout/MobileNav';
+import { InstallPwaBanner } from './components/pwa/InstallPwaBanner';
 
 import { DashboardPage } from './pages/DashboardPage';
 import { RecipesPage } from './pages/RecipesPage';
@@ -82,7 +83,7 @@ const MainLayout: React.FC = () => {
           />
 
           {/* Page Route Views */}
-          <main className="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto">
+          <main className="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-8">
             <Routes>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/ocr-scanner" element={<OCRScanPage />} />
@@ -101,6 +102,9 @@ const MainLayout: React.FC = () => {
           {/* Mobile Bottom Navigation */}
           <MobileNav />
         </div>
+
+        {/* PWA Installation Floating Banner & Modal */}
+        <InstallPwaBanner />
 
         {/* Quick Expense Modal */}
         <Modal

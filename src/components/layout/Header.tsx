@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Sun, Moon, Scan, Plus, Wallet, LogOut } from 'lucide-react';
+import { Eye, EyeOff, Sun, Moon, Scan, Plus, Wallet, LogOut, Smartphone } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useFinance } from '../../hooks/useFinance';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatCurrency } from '../../lib/utils';
 import { Button } from '../ui';
+import { openPwaInstallModal } from '../pwa/InstallPwaBanner';
 
 interface HeaderProps {
   onOpenQuickScan: () => void;
@@ -41,6 +42,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenQuickScan, onOpenNewTransa
 
       {/* Action Buttons & Theme Toggler */}
       <div className="flex items-center gap-2">
+        {/* PWA Install Button */}
+        <button
+          onClick={openPwaInstallModal}
+          className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 transition-colors text-xs font-semibold"
+          title="Instalar App no Celular (Android / iOS)"
+        >
+          <Smartphone className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="hidden md:inline">Instalar App</span>
+        </button>
+
         {/* Quick OCR Scanner */}
         <Button
           variant="outline"

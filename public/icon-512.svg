@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="50%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Background with rounded corners for app icon -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle inner border -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="#334155" stroke-width="4" opacity="0.6"/>
+
+  <!-- Main glowing emblem: Wallet & Shield element -->
+  <g transform="translate(96, 96)">
+    <!-- Back Glow -->
+    <rect x="32" y="56" width="256" height="180" rx="28" fill="#10b981" opacity="0.25" filter="url(#glow)"/>
+    
+    <!-- Main Credit Card / Wallet Graphic -->
+    <rect x="24" y="44" width="272" height="172" rx="24" fill="url(#cardGrad)" stroke="#6ee7b7" stroke-width="3"/>
+    
+    <!-- Magnetic stripe / accent line -->
+    <rect x="24" y="80" width="272" height="36" fill="#064e3b" opacity="0.7"/>
+    
+    <!-- Chip element -->
+    <rect x="60" y="132" width="44" height="34" rx="8" fill="#f59e0b" stroke="#fbbf24" stroke-width="2"/>
+    <line x1="82" y1="132" x2="82" y2="166" stroke="#d97706" stroke-width="1.5"/>
+    <line x1="60" y1="149" x2="104" y2="149" stroke="#d97706" stroke-width="1.5"/>
+
+    <!-- Upward Trend Line / Hand Shield motif -->
+    <path d="M140 160 L180 125 L210 140 L256 94" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <polygon points="256,94 242,98 252,108" fill="#ffffff"/>
+
+    <!-- Sparkle Stars -->
+    <circle cx="256" cy="94" r="6" fill="#6ee7b7" filter="url(#glow)"/>
+  </g>
+  
+  <!-- Brand Title Pill -->
+  <rect x="120" y="380" width="272" height="48" rx="24" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+  <text x="256" y="412" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="700" fill="#10b981" text-anchor="middle" letter-spacing="1">FINANCEIRO</text>
+</svg>

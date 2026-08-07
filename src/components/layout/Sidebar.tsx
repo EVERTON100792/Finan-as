@@ -13,9 +13,11 @@ import {
   Target,
   Settings,
   ShieldCheck,
+  Smartphone,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { isSupabaseConfigured } from '../../lib/supabase';
+import { openPwaInstallModal } from '../pwa/InstallPwaBanner';
 
 const navItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -75,6 +77,25 @@ export const Sidebar: React.FC = () => {
           );
         })}
       </nav>
+
+      {/* PWA App Install Banner trigger */}
+      <div className="pt-3 mb-2">
+        <button
+          onClick={openPwaInstallModal}
+          className="w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-emerald-950/50 to-slate-900 border border-emerald-500/30 text-emerald-400 hover:border-emerald-500/60 transition-all group"
+        >
+          <div className="flex items-center gap-2.5">
+            <Smartphone className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+            <div className="text-left text-xs">
+              <p className="font-bold text-slate-200">Instalar no Celular</p>
+              <p className="text-[10px] text-emerald-400">Android & iPhone (iOS)</p>
+            </div>
+          </div>
+          <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-500/40">
+            PWA
+          </span>
+        </button>
+      </div>
 
       {/* Database Status Footer */}
       <div className="mt-auto pt-4 border-t border-slate-800/80">
