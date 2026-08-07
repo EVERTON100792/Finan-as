@@ -725,13 +725,28 @@ class LocalFinanceEngine {
   }
 
   getDashboardStats(): DashboardStats {
-    const profile = this.getProfile();
     const recipes = this.getRecipes();
     const expenses = this.getExpenses();
     const bills = this.getBills();
     const transactions = this.getTransactions();
 
     const currentYearMonth = getTodayString().substring(0, 7);
+
+    const totalRec = recipes.reduce((sum, r) => sum + Number(r.valor), 0);
+    const totalPaidExpenses = expenses
+      .filter(e => e.status === 'paga')
+      .reduce((sum, e) => sum + Number(e.valor), 0);
+    const totalPaidBills = bills
+      .filter(b => b.status === 'paga')
+      .reduce((sum, b) => sum + Number(b.valor), 0);
+
+    const saldoAtualCalculado = totalRec - (totalPaidExpenses + totalPaidBills);
+
+    // Sync profile balance in storage
+    const profile = this.getProfile();
+    if (profile.current_balance !== saldoAtualCalculado) {
+      this.updateProfile({ current_balance: saldoAtualCalculado });
+    }
 
     const receitasMes = recipes
       .filter(r => r.data.startsWith(currentYearMonth))
@@ -760,7 +775,7 @@ class LocalFinanceEngine {
       contasPagasBills.reduce((sum, b) => sum + Number(b.valor), 0) +
       expensesPagas.reduce((sum, e) => sum + Number(e.valor), 0);
 
-    const saldoPrevisto = profile.current_balance - contasPendentesValor;
+    const saldoPrevisto = saldoAtualCalculado - contasPendentesValor;
 
     const despesasPorCategoria: Record<string, number> = {};
     expenses.filter(e => e.status === 'paga').forEach(e => {
@@ -782,7 +797,7 @@ class LocalFinanceEngine {
     const ultimosPagamentos = transactions.slice(0, 6);
 
     return {
-      saldoAtual: profile.current_balance,
+      saldoAtual: saldoAtualCalculado,
       receitasMes,
       despesasMes,
       saldoPrevisto,
