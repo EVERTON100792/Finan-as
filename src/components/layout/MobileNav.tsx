@@ -1,14 +1,14 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Scan, CalendarCheck, CreditCard, TrendingDown } from 'lucide-react';
+import { LayoutDashboard, Scan, CalendarCheck, CreditCard, TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const mobileNavItems = [
   { name: 'Início', path: '/', icon: LayoutDashboard },
-  { name: 'Despesas', path: '/despesas', icon: TrendingDown },
+  { name: 'Receitas', path: '/receitas', icon: TrendingUp },
   { name: 'OCR', path: '/ocr-scanner', icon: Scan, isCenter: true },
+  { name: 'Despesas', path: '/despesas', icon: TrendingDown },
   { name: 'Contas', path: '/contas', icon: CalendarCheck },
-  { name: 'Cartões', path: '/cartoes', icon: CreditCard },
 ];
 
 export const MobileNav: React.FC = () => {
