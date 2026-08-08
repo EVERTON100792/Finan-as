@@ -168,10 +168,28 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
     }
   };
 
+  const parseNumeric = (val: any): number => {
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    if (!val) return 0;
+    const cleanStr = String(val)
+      .replace(/[^\d,\.]/g, '')
+      .replace(/\.(?=\d{3})/g, '')
+      .replace(',', '.');
+    const num = parseFloat(cleanStr);
+    return isNaN(num) ? 0 : num;
+  };
+
   const handleConfirm = async () => {
     setIsRegistering(true);
 
-    let finalCategory = categoria;
+    const numericValor = parseNumeric(valor);
+    if (numericValor <= 0) {
+      alert('Por favor, verifique o valor pago antes de confirmar (deve ser maior que zero).');
+      setIsRegistering(false);
+      return;
+    }
+
+    let finalCategory = categoria || 'Alimentação / Mercado';
     if (isCustomCategory && customCategoryName.trim()) {
       finalCategory = customCategoryName.trim();
       await addCategory({
@@ -182,7 +200,7 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
       });
     }
 
-    const finalAccountTitle = nomeContaCustom.trim() || favorecido;
+    const finalAccountTitle = nomeContaCustom.trim() || favorecido || 'Despesa OCR';
 
     try {
       if (selectedCandidate) {
@@ -204,8 +222,8 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
         await addExpense({
           descricao: finalAccountTitle,
           categoria: finalCategory,
-          valor: Number(valor),
-          data: data,
+          valor: numericValor,
+          data: data || getTodayString(),
           forma_pagamento: 'pix',
           observacoes: `Comprovante OCR. Favorecido: ${favorecido} (${banco}). Nº Transação: ${numTransacao || 'N/A'}. Hora: ${hora}`,
           status: 'paga',
@@ -215,8 +233,9 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
 
       setIsRegistering(false);
       setRegisteredSuccess(true);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Erro ao registrar baixa:', err);
+      alert(`Ocorreu um erro ao registrar a baixa: ${err?.message || 'Tente novamente.'}`);
       setIsRegistering(false);
     }
   };

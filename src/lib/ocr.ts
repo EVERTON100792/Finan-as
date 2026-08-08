@@ -47,14 +47,31 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
     tipo_transacao = 'Cupom Fiscal / Nota Fiscal';
   }
 
-  // 1. Extrair Valor
-  const valorRegex = /(?:VALOR\s*TOTAL\s*:?\s*R\$\s*|TOTAL\s*R\$\s*|VALOR\s*PAGO\s*:?\s*R\$\s*|TOTAL\s*A\s*PAGAR\s*:?\s*R\$\s*|VALOR\s*:?\s*R\$\s*|TOTAL\s*:?\s*R\$\s*|R\$\s*)([\d\.\,]+)/i;
-  const valorMatch = text.match(valorRegex);
-  
-  if (valorMatch && valorMatch[1]) {
-    valor = cleanAmount(valorMatch[1]);
-  } else {
-    // Procurar o maior valor no padrão de moeda R$ XX,XX ou XX,XX
+  // 1. Extrair Valor - Prioridade Máxima para "VALOR A PAGAR" e "VALOR PAGO"
+  const patternsValor = [
+    // Prioridade 1: "VALOR A PAGAR" ou "VALOR PAGO" ou "TOTAL A PAGAR"
+    /(?:VALOR\s*A?\s*PAGAR|VALOR\s*PAGO|TOTAL\s*A?\s*PAGAR|PAGO)\s*:?\s*(?:R\$\s*)?([\d\.\,]+)/i,
+    // Prioridade 2: "VALOR TOTAL" ou "TOTAL R$" ou "VALOR RECEBIDO"
+    /(?:VALOR\s*TOTAL|TOTAL\s*L[IÍ]QUIDO|VALOR\s*RECEBIDO|VALOR\s*L[IÍ]QUIDO|TOTAL\s*R\$)\s*:?\s*(?:R\$\s*)?([\d\.\,]+)/i,
+    // Prioridade 3: "TOTAL" ou "VALOR" ou "SUBTOTAL"
+    /(?:TOTAL|VALOR|SUBTOTAL)\s*:?\s*(?:R\$\s*)?([\d\.\,]+)/i,
+    // Prioridade 4: R$ seguido de valor numérico
+    /R\$\s*([\d\.\,]+)/i,
+  ];
+
+  for (const pattern of patternsValor) {
+    const match = text.match(pattern);
+    if (match && match[1]) {
+      const parsedVal = cleanAmount(match[1]);
+      if (parsedVal > 0) {
+        valor = parsedVal;
+        break;
+      }
+    }
+  }
+
+  // Fallback: Procurar o maior valor no padrão de moeda R$ XX,XX ou XX,XX
+  if (!valor || valor === 0) {
     const matches = text.match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
     if (matches && matches.length > 0) {
       const parsedValues = matches.map(m => cleanAmount(m)).filter(v => v > 0);
