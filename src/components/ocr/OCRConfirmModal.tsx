@@ -240,6 +240,18 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
       title="Validar & Dar Baixa via Comprovante (OCR)"
       subtitle="Abata uma conta cadastrada ou registre a baixa informando o nome"
       maxWidth="lg"
+      footer={
+        registeredSuccess ? null : (
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={onClose} size="sm" className="w-full sm:w-auto py-2.5">
+              Cancelar
+            </Button>
+            <Button onClick={handleConfirm} isLoading={isRegistering} size="sm" className="w-full sm:w-auto py-2.5 bg-emerald-600 hover:bg-emerald-500 font-bold">
+              {selectedCandidate ? `Dar Baixa em "${selectedCandidate.title}"` : 'Confirmar e Registrar Baixa'}
+            </Button>
+          </div>
+        )
+      }
     >
       {registeredSuccess ? (
         <div className="text-center py-6 space-y-4 animate-fade-in">
@@ -272,23 +284,23 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-400">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-400">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              <span>OCR Lido: Valor de <strong>{formatCurrency(valor)}</strong> extraído do comprovante</span>
+              <Sparkles className="w-4 h-4 shrink-0" />
+              <span>OCR Lido: Valor de <strong>{formatCurrency(valor)}</strong> extraído</span>
             </div>
           </div>
 
           {/* Selector 1: Manual Dropdown Selector of ALL Pending Bills / Accounts */}
-          <div className="space-y-1.5 p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl">
+          <div className="space-y-1 p-2.5 bg-slate-950/60 border border-slate-800 rounded-xl">
             <label className="block text-xs font-bold text-slate-200 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <CalendarCheck className="w-4 h-4 text-emerald-400" />
+                <CalendarCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                 Selecione a Conta para Abater / Dar Baixa:
               </span>
               {selectedCandidate && (
-                <span className="text-[10px] text-emerald-400 font-medium">✨ Conta Vinculada</span>
+                <span className="text-[10px] text-emerald-400 font-medium shrink-0">✨ Vinculada</span>
               )}
             </label>
 
@@ -303,7 +315,7 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
                   handleSelectCandidate(match || null);
                 }
               }}
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
             >
               <option value="__custom__">
                 ✍️ Nenhuma conta da lista (Digitar nome da conta manualmente abaixo)
@@ -323,23 +335,18 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
           {/* Account Title Field for Direct Baixa */}
           <div className="space-y-1">
             <label className="block text-xs font-semibold text-slate-200 flex items-center gap-1">
-              <Edit3 className="w-3.5 h-3.5 text-emerald-400" />
+              <Edit3 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               Nome da Conta / Descrição da Baixa *
             </label>
             <Input
-              placeholder="Ex: Conta de Energia, Aluguel, Supermercado..."
+              placeholder="Ex: Supermercado, Aluguel, Oficina..."
               value={nomeContaCustom}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNomeContaCustom(e.target.value)}
             />
-            <p className="text-[10px] text-slate-400">
-              {selectedCandidate 
-                ? `Dar baixa em "${selectedCandidate.title}"`
-                : 'Caso não tenha conta cadastrada, este nome será gravado diretamente no extrato.'}
-            </p>
           </div>
 
-          {/* Detailed Transaction Fields */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
+          {/* Detailed Transaction Fields - 2 Cols even on Mobile */}
+          <div className="grid grid-cols-2 gap-2.5 pt-1 border-t border-slate-800/80">
             <Input
               type="number"
               step="0.01"
@@ -350,11 +357,13 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
 
             <Input
               type="date"
-              label="Data da Transação *"
+              label="Data *"
               value={data}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData(e.target.value)}
             />
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <Input
               label="Favorecido / Recebedor *"
               value={favorecido}
@@ -405,16 +414,6 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
                 </select>
               )}
             </div>
-          </div>
-
-          {/* Action buttons container */}
-          <div className="pt-4 pb-1 border-t border-slate-800 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 mt-4">
-            <Button type="button" variant="ghost" onClick={onClose} size="sm" className="w-full sm:w-auto py-2.5">
-              Cancelar
-            </Button>
-            <Button onClick={handleConfirm} isLoading={isRegistering} size="sm" className="w-full sm:w-auto py-2.5">
-              {selectedCandidate ? `Dar Baixa em "${selectedCandidate.title}"` : 'Confirmar e Registrar Baixa'}
-            </Button>
           </div>
         </div>
       )}
