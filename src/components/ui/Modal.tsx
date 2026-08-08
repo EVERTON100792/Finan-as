@@ -44,11 +44,11 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in overflow-hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 pb-20 sm:pb-4 bg-slate-950/85 backdrop-blur-sm animate-fade-in overflow-hidden"
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidthClasses} bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 glass-card my-auto max-h-[88vh] max-h-[88dvh]`}
+        className={`w-full ${maxWidthClasses} bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 glass-card my-auto max-h-[calc(100dvh-6.5rem)] sm:max-h-[85vh]`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -67,8 +67,8 @@ export const Modal: React.FC<ModalProps> = ({
           </button>
         </div>
 
-        {/* Content Body - Compact, Responsive & Scrollable on mobile */}
-        <div className="p-4 sm:p-5 overflow-y-auto min-h-0 flex-1 touch-pan-y">
+        {/* Content Body - Responsive & Scrollable */}
+        <div className="p-3.5 sm:p-5 overflow-y-auto min-h-0 flex-1 touch-pan-y">
           {children}
         </div>
       </div>
