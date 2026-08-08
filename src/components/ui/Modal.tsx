@@ -46,11 +46,11 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 pb-20 sm:pb-4 bg-slate-950/85 backdrop-blur-sm animate-fade-in overflow-hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-20 sm:pb-4 bg-slate-950/85 backdrop-blur-sm animate-fade-in overflow-hidden"
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidthClasses} bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 glass-card mb-16 sm:mb-0 max-h-[calc(100dvh-7rem)] sm:max-h-[85vh]`}
+        className={`w-full ${maxWidthClasses} bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 glass-card my-auto mb-20 sm:mb-auto max-h-[75dvh] sm:max-h-[85vh]`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile handle indicator */}
