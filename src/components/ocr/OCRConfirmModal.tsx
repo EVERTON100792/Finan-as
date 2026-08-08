@@ -239,21 +239,21 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
       onClose={onClose}
       title="Validar & Dar Baixa (OCR)"
       subtitle="Confirme os dados extraídos para registrar a baixa"
-      maxWidth="md"
+      maxWidth="sm"
       footer={
         registeredSuccess ? null : (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onClose} size="sm" className="w-full sm:w-auto py-2 text-xs text-slate-300">
+          <div className="flex items-center justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={onClose} size="sm" className="py-2 px-3 text-xs text-slate-300">
               Cancelar
             </Button>
             <Button 
               onClick={handleConfirm} 
               isLoading={isRegistering} 
               size="sm" 
-              className="w-full sm:w-auto py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/25 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
+              className="flex-1 sm:flex-none py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-extrabold text-xs shadow-lg shadow-emerald-500/25 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />
-              <span>{selectedCandidate ? `Dar Baixa em "${selectedCandidate.title}"` : 'Confirmar e Registrar Baixa'}</span>
+              <span>{selectedCandidate ? `Dar Baixa` : 'Confirmar e Registrar Baixa'}</span>
             </Button>
           </div>
         )
@@ -273,156 +273,84 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
+          <div className="flex items-center justify-center gap-2 pt-2">
             <Button
               onClick={handleShareWhatsApp}
-              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs py-2"
             >
-              <Share2 className="w-3.5 h-3.5 mr-1.5" />
+              <Share2 className="w-3.5 h-3.5 mr-1" />
               Compartilhar WhatsApp
             </Button>
-            <Button variant="secondary" onClick={onClose} className="w-full sm:w-auto text-xs">
+            <Button variant="secondary" onClick={onClose} className="text-xs py-2">
               Concluir
             </Button>
           </div>
         </div>
       ) : (
-        <div className="space-y-2.5">
-          {/* Top OCR Info Badge */}
+        <div className="space-y-2">
+          {/* Row 1: Compact Banner & Candidate Selector if available */}
           <div className="flex items-center justify-between px-2.5 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[11px] text-emerald-400">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 truncate">
               <Sparkles className="w-3.5 h-3.5 shrink-0" />
-              <span>OCR Lido: <strong>{formatCurrency(valor)}</strong></span>
+              <span className="truncate">Lido: <strong>{formatCurrency(valor)}</strong> • {favorecido}</span>
             </div>
-          </div>
-
-          {/* Selector 1: Manual Dropdown Selector of ALL Pending Bills / Accounts */}
-          <div className="space-y-1 p-2 bg-slate-950/60 border border-slate-800 rounded-lg">
-            <label className="block text-[11px] font-bold text-slate-200 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <CalendarCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                Vincular a uma Conta Cadastrada:
+            {selectedCandidate && (
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold shrink-0 ml-1">
+                ✨ Vinculada
               </span>
-              {selectedCandidate && (
-                <span className="text-[10px] text-emerald-400 font-medium shrink-0">✨ Vinculada</span>
-              )}
-            </label>
-
-            <select
-              value={selectedCandidate ? `${selectedCandidate.type}:${selectedCandidate.id}` : '__custom__'}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val === '__custom__') {
-                  handleSelectCandidate(null);
-                } else {
-                  const match = allPendingItems.find((item) => `${item.type}:${item.id}` === val);
-                  handleSelectCandidate(match || null);
-                }
-              }}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-slate-100 focus:outline-none focus:border-emerald-500"
-            >
-              <option value="__custom__">
-                ✍️ Nenhuma (Digitar nome da conta manualmente abaixo)
-              </option>
-              {allPendingItems.length > 0 && (
-                <optgroup label="📋 Contas Pendentes & Parcelamentos">
-                  {allPendingItems.map((item) => (
-                    <option key={`${item.type}:${item.id}`} value={`${item.type}:${item.id}`}>
-                      {item.type === 'bill' ? '📅 Conta' : item.type === 'installment' ? '💳 Parc.' : '📝 Despesa'}: {item.title} — {formatCurrency(item.valor)}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
+            )}
           </div>
 
-          {/* Account Title Field for Direct Baixa */}
-          <div className="space-y-1">
+          {/* Account Title Field */}
+          <div className="space-y-0.5">
             <label className="block text-[11px] font-semibold text-slate-200 flex items-center gap-1">
               <Edit3 className="w-3 h-3 text-emerald-400 shrink-0" />
-              Nome da Conta / Descrição da Baixa *
+              Nome da Conta / Descrição *
             </label>
             <Input
               placeholder="Ex: Supermercado, Aluguel, Oficina..."
               value={nomeContaCustom}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNomeContaCustom(e.target.value)}
-              className="py-1.5 text-xs"
+              className="py-1.5 text-xs bg-slate-950"
             />
           </div>
 
-          {/* Compact Grid: Valor + Data */}
-          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
-            <Input
-              type="number"
-              step="0.01"
-              label="Valor (R$) *"
-              value={valor}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValor(parseFloat(e.target.value) || 0)}
-              className="py-1.5 text-xs"
-            />
+          {/* Row 3: Ultra Compact 3-Column Grid (Valor | Data | Categoria) */}
+          <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-800/80">
+            <div className="space-y-0.5">
+              <label className="block text-[10px] font-semibold text-slate-300">Valor (R$) *</label>
+              <Input
+                type="number"
+                step="0.01"
+                value={valor}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValor(parseFloat(e.target.value) || 0)}
+                className="py-1 px-2 text-xs bg-slate-950"
+              />
+            </div>
 
-            <Input
-              type="date"
-              label="Data *"
-              value={data}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData(e.target.value)}
-              className="py-1.5 text-xs"
-            />
-          </div>
+            <div className="space-y-0.5">
+              <label className="block text-[10px] font-semibold text-slate-300">Data *</label>
+              <Input
+                type="date"
+                value={data}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData(e.target.value)}
+                className="py-1 px-1.5 text-[11px] bg-slate-950"
+              />
+            </div>
 
-          {/* Compact Grid: Favorecido + Categoria */}
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              label="Favorecido *"
-              value={favorecido}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFavorecido(e.target.value)}
-              className="py-1.5 text-xs"
-            />
-
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="block text-[11px] font-semibold text-slate-300">Categoria *</label>
-                <button
-                  type="button"
-                  onClick={() => setIsCustomCategory(!isCustomCategory)}
-                  className="text-[10px] text-emerald-400 hover:underline flex items-center gap-0.5 font-medium"
-                >
-                  <Plus className="w-3 h-3" />
-                  {isCustomCategory ? 'Lista' : 'Nova'}
-                </button>
-              </div>
-
-              {isCustomCategory ? (
-                <Input
-                  placeholder="Nova..."
-                  value={customCategoryName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setCustomCategoryName(e.target.value);
-                    setCategoria(e.target.value);
-                  }}
-                  icon={<Tag className="w-3 h-3" />}
-                  className="py-1.5 text-xs"
-                />
-              ) : (
-                <select
-                  value={categoria}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                    if (e.target.value === '__new__') {
-                      setIsCustomCategory(true);
-                    } else {
-                      setCategoria(e.target.value);
-                    }
-                  }}
-                  className="w-full bg-slate-950/80 border border-slate-800 rounded-lg px-2 py-1.5 text-[11px] text-slate-100 focus:outline-none focus:border-emerald-500"
-                >
-                  {expenseCategories.map((c) => (
-                    <option key={c.id} value={c.nome}>
-                      {c.nome}
-                    </option>
-                  ))}
-                  <option value="__new__">➕ Nova Categoria...</option>
-                </select>
-              )}
+            <div className="space-y-0.5">
+              <label className="block text-[10px] font-semibold text-slate-300 truncate">Categoria *</label>
+              <select
+                value={categoria}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategoria(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-1.5 py-1 text-[11px] text-slate-100 focus:outline-none focus:border-emerald-500"
+              >
+                {expenseCategories.map((c) => (
+                  <option key={c.id} value={c.nome}>
+                    {c.nome}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
