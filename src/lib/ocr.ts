@@ -48,29 +48,46 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
   }
 
   // 1. Extrair Valor - Prioridade Máxima para "VALOR A PAGAR" e "VALOR PAGO"
-  const patternsValor = [
-    // Prioridade 1: "VALOR A PAGAR" ou "VALOR PAGO" ou "TOTAL A PAGAR"
-    /(?:VALOR\s*A?\s*PAGAR|VALOR\s*PAGO|TOTAL\s*A?\s*PAGAR|PAGO)\s*:?\s*(?:R\$\s*)?([\d\.\,]+)/i,
-    // Prioridade 2: "VALOR TOTAL" ou "TOTAL R$" ou "VALOR RECEBIDO"
-    /(?:VALOR\s*TOTAL|TOTAL\s*L[IÍ]QUIDO|VALOR\s*RECEBIDO|VALOR\s*L[IÍ]QUIDO|TOTAL\s*R\$)\s*:?\s*(?:R\$\s*)?([\d\.\,]+)/i,
-    // Prioridade 3: "TOTAL" ou "VALOR" ou "SUBTOTAL"
-    /(?:TOTAL|VALOR|SUBTOTAL)\s*:?\s*(?:R\$\s*)?([\d\.\,]+)/i,
-    // Prioridade 4: R$ seguido de valor numérico
-    /R\$\s*([\d\.\,]+)/i,
-  ];
+  // Estratégia A: Escanear linhas contendo "valor a pagar", "valor pago" ou "total a pagar"
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/valor\s*a?\s*pagar|valor\s*pago|total\s*a?\s*pagar|valor\s*l[ií]quido/i.test(line)) {
+      // Procurar valores no formato 00,00 nesta linha ou nas próximas 3 linhas
+      for (let j = i; j < Math.min(i + 4, lines.length); j++) {
+        const numbers = lines[j].match(/\b\d{1,4}[\,\.]\d{2}\b/g);
+        if (numbers && numbers.length > 0) {
+          const candidate = cleanAmount(numbers[numbers.length - 1]);
+          if (candidate > 0) {
+            valor = candidate;
+            break;
+          }
+        }
+      }
+      if (valor && valor > 0) break;
+    }
+  }
 
-  for (const pattern of patternsValor) {
-    const match = text.match(pattern);
-    if (match && match[1]) {
-      const parsedVal = cleanAmount(match[1]);
-      if (parsedVal > 0) {
-        valor = parsedVal;
-        break;
+  // Estratégia B: Se não encontrou por proximidade de linha, testar por Regex Multilinha
+  if (!valor || valor === 0) {
+    const patternsValor = [
+      /(?:VALOR\s*A?\s*PAGAR|VALOR\s*PAGO|TOTAL\s*A?\s*PAGAR|VALOR\s*L[IÍ]QUIDO)[\s\S]{0,60}?([\d]{1,4}[\,\.][\d]{2})/i,
+      /(?:VALOR\s*TOTAL|TOTAL\s*R\$|VALOR\s*RECEBIDO)[\s\S]{0,60}?([\d]{1,4}[\,\.][\d]{2})/i,
+      /R\$\s*([\d]{1,4}[\,\.][\d]{2})/i,
+    ];
+
+    for (const pattern of patternsValor) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const parsedVal = cleanAmount(match[1]);
+        if (parsedVal > 0) {
+          valor = parsedVal;
+          break;
+        }
       }
     }
   }
 
-  // Fallback: Procurar o maior valor no padrão de moeda R$ XX,XX ou XX,XX
+  // Fallback C: Procurar o maior valor no padrão de moeda R$ XX,XX ou XX,XX
   if (!valor || valor === 0) {
     const matches = text.match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
     if (matches && matches.length > 0) {

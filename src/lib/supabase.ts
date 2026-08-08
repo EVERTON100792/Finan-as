@@ -289,10 +289,22 @@ class LocalFinanceEngine {
     if (supabase && userId !== 'default-user') {
       const { data, error } = await supabase.from('expenses').insert([payload]).select().single();
       if (error) {
-        console.error('Erro ao salvar despesa no Supabase:', error);
-        throw new Error(error.message);
+        // Fallback: If 'status' column is missing in Remote Supabase schema cache
+        if (error.message.includes('status') || error.code === 'PGRST204') {
+          const { status: _st, ...remotePayload } = payload;
+          const { data: retryData, error: retryErr } = await supabase.from('expenses').insert([remotePayload]).select().single();
+          if (retryErr) {
+            console.error('Erro ao salvar despesa no Supabase:', retryErr);
+            throw new Error(retryErr.message);
+          }
+          savedItem = { ...retryData, status } as Expense;
+        } else {
+          console.error('Erro ao salvar despesa no Supabase:', error);
+          throw new Error(error.message);
+        }
+      } else {
+        savedItem = data as Expense;
       }
-      savedItem = data as Expense;
     } else {
       savedItem = { ...payload, id: generateId(), created_at: new Date().toISOString() };
     }
@@ -325,8 +337,12 @@ class LocalFinanceEngine {
       targetExpense.status = status;
       this.setItem('expenses', expenses);
 
-      if (supabase) {
-        await supabase.from('expenses').update({ status }).eq('id', id);
+      const userId = await this.getUserId();
+      if (supabase && userId !== 'default-user') {
+        const { error } = await supabase.from('expenses').update({ status }).eq('id', id);
+        if (error && error.message.includes('status')) {
+          console.warn('Coluna status ausente na tabela remote do Supabase, alteração mantida localmente.');
+        }
       }
 
       if (status === 'paga') {
