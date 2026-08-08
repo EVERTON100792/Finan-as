@@ -1,6 +1,7 @@
 import { createWorker } from 'tesseract.js';
 import { OCRParseResult } from '../types';
 import { analyzeReceiptWithAiVision } from './aiVision';
+import { convertPdfToJpegImage } from './pdfUtils';
 
 export async function tryExtractQrCodeData(imageSource: File | Blob | string): Promise<Partial<OCRParseResult> | null> {
   try {
@@ -60,12 +61,28 @@ export async function processReceiptOCR(
   fileOrImage: File | Blob | string,
   onProgress?: (progress: number, statusText: string) => void
 ): Promise<OCRParseResult> {
+  let targetInput: File | Blob | string = fileOrImage;
+
+  // Se o arquivo selecionado for PDF, converter a 1ª página em imagem JPEG de alta resolução
+  const isPdf =
+    (fileOrImage instanceof File && (fileOrImage.type === 'application/pdf' || fileOrImage.name.toLowerCase().endsWith('.pdf'))) ||
+    (fileOrImage instanceof Blob && fileOrImage.type === 'application/pdf');
+
+  if (isPdf && typeof fileOrImage !== 'string') {
+    try {
+      if (onProgress) onProgress(2, 'Convertendo documento PDF em imagem de alta resolução...');
+      targetInput = await convertPdfToJpegImage(fileOrImage);
+    } catch (pdfErr) {
+      console.warn('Não foi possível converter o PDF via canvas, tentando envio direto:', pdfErr);
+    }
+  }
+
   // 1. Tentar leitura com Inteligência Artificial Vision (Groq / Gemini) em primeiro lugar
   try {
-    if (onProgress) onProgress(5, 'Consultando Inteligência Artificial (IA Vision)...');
-    const aiResult = await analyzeReceiptWithAiVision(fileOrImage);
+    if (onProgress) onProgress(8, 'Consultando Inteligência Artificial (Groq Vision AI)...');
+    const aiResult = await analyzeReceiptWithAiVision(targetInput);
     if (aiResult && aiResult.valor && aiResult.valor > 0) {
-      if (onProgress) onProgress(100, 'Leitura IA concluída com 100% de precisão!');
+      if (onProgress) onProgress(100, 'Leitura por IA concluída com 100% de precisão!');
       return aiResult;
     }
   } catch (aiErr) {
@@ -76,12 +93,12 @@ export async function processReceiptOCR(
   const worker = await createWorker('por+eng');
 
   try {
-    if (onProgress) onProgress(15, 'Lendo QR Code e imagens...');
-    const qrResult = await tryExtractQrCodeData(fileOrImage);
+    if (onProgress) onProgress(20, 'Lendo QR Code e imagens...');
+    const qrResult = await tryExtractQrCodeData(targetInput);
 
-    if (onProgress) onProgress(30, 'Iniciando motor Tesseract OCR...');
+    if (onProgress) onProgress(40, 'Iniciando motor Tesseract OCR...');
 
-    const ret = await worker.recognize(fileOrImage);
+    const ret = await worker.recognize(targetInput);
     const text = ret.data.text;
     const confidence = ret.data.confidence;
 
