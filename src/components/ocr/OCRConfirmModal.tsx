@@ -404,11 +404,12 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-            <Button type="button" variant="ghost" onClick={onClose} size="sm">
+          {/* Sticky/Clear action buttons container at the bottom */}
+          <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur-md pt-3 pb-1 border-t border-slate-800 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 -mx-4 -mb-4 px-4 pb-4 sm:-mx-5 sm:-mb-5 sm:px-5 sm:pb-5 mt-4 z-10">
+            <Button type="button" variant="ghost" onClick={onClose} size="sm" className="w-full sm:w-auto py-2.5">
               Cancelar
             </Button>
-            <Button onClick={handleConfirm} isLoading={isRegistering} size="sm">
+            <Button onClick={handleConfirm} isLoading={isRegistering} size="sm" className="w-full sm:w-auto py-2.5">
               {selectedCandidate ? `Dar Baixa em "${selectedCandidate.title}"` : 'Confirmar e Registrar Baixa'}
             </Button>
           </div>

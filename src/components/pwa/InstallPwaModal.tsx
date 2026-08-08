@@ -19,9 +19,9 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 overflow-hidden">
       <div 
-        className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8 text-slate-100"
+        className="relative w-full max-w-lg max-h-[88vh] max-h-[88dvh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-5 sm:p-8 text-slate-100 touch-pan-y"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Glow effect */}
