@@ -237,20 +237,20 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Validar & Dar Baixa via Comprovante (OCR)"
-      subtitle="Abata uma conta cadastrada ou registre a baixa informando o nome"
-      maxWidth="lg"
+      title="Validar & Dar Baixa (OCR)"
+      subtitle="Confirme os dados extraídos para registrar a baixa"
+      maxWidth="md"
       footer={
         registeredSuccess ? null : (
-          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5">
-            <Button type="button" variant="ghost" onClick={onClose} size="sm" className="w-full sm:w-auto py-3 sm:py-2 text-slate-300">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={onClose} size="sm" className="w-full sm:w-auto py-2 text-xs text-slate-300">
               Cancelar
             </Button>
             <Button 
               onClick={handleConfirm} 
               isLoading={isRegistering} 
               size="sm" 
-              className="w-full sm:w-auto py-3 px-6 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/25 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/25 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />
               <span>{selectedCandidate ? `Dar Baixa em "${selectedCandidate.title}"` : 'Confirmar e Registrar Baixa'}</span>
@@ -260,50 +260,48 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
       }
     >
       {registeredSuccess ? (
-        <div className="text-center py-6 space-y-4 animate-fade-in">
-          <div className="w-16 h-16 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-10 h-10" />
+        <div className="text-center py-4 space-y-3 animate-fade-in">
+          <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-8 h-8" />
           </div>
           <div>
-            <h4 className="text-lg font-bold text-white">Baixa Concluída com Sucesso!</h4>
-            <p className="text-sm text-emerald-400 font-semibold mt-1">
+            <h4 className="text-base font-bold text-white">Baixa Concluída!</h4>
+            <p className="text-xs text-emerald-400 font-semibold mt-0.5">
               {markedItemTitle
                 ? `Baixa confirmada na conta "${markedItemTitle}"!`
                 : 'A despesa foi registrada no extrato.'}
             </p>
-            <p className="text-xs text-slate-400 mt-1">
-              O saldo atual e o extrato de movimentações foram atualizados em tempo real.
-            </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
             <Button
               onClick={handleShareWhatsApp}
-              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs"
             >
-              <Share2 className="w-4 h-4 mr-2" />
-              Compartilhar no WhatsApp
+              <Share2 className="w-3.5 h-3.5 mr-1.5" />
+              Compartilhar WhatsApp
             </Button>
-            <Button variant="secondary" onClick={onClose} className="w-full sm:w-auto">
+            <Button variant="secondary" onClick={onClose} className="w-full sm:w-auto text-xs">
               Concluir
             </Button>
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-400">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 shrink-0" />
-              <span>OCR Lido: Valor de <strong>{formatCurrency(valor)}</strong> extraído</span>
+        <div className="space-y-2.5">
+          {/* Top OCR Info Badge */}
+          <div className="flex items-center justify-between px-2.5 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[11px] text-emerald-400">
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              <span>OCR Lido: <strong>{formatCurrency(valor)}</strong></span>
             </div>
           </div>
 
           {/* Selector 1: Manual Dropdown Selector of ALL Pending Bills / Accounts */}
-          <div className="space-y-1 p-2.5 bg-slate-950/60 border border-slate-800 rounded-xl">
-            <label className="block text-xs font-bold text-slate-200 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <CalendarCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                Selecione a Conta para Abater / Dar Baixa:
+          <div className="space-y-1 p-2 bg-slate-950/60 border border-slate-800 rounded-lg">
+            <label className="block text-[11px] font-bold text-slate-200 flex items-center justify-between">
+              <span className="flex items-center gap-1">
+                <CalendarCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                Vincular a uma Conta Cadastrada:
               </span>
               {selectedCandidate && (
                 <span className="text-[10px] text-emerald-400 font-medium shrink-0">✨ Vinculada</span>
@@ -321,16 +319,16 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
                   handleSelectCandidate(match || null);
                 }
               }}
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-slate-100 focus:outline-none focus:border-emerald-500"
             >
               <option value="__custom__">
-                ✍️ Nenhuma conta da lista (Digitar nome da conta manualmente abaixo)
+                ✍️ Nenhuma (Digitar nome da conta manualmente abaixo)
               </option>
               {allPendingItems.length > 0 && (
                 <optgroup label="📋 Contas Pendentes & Parcelamentos">
                   {allPendingItems.map((item) => (
                     <option key={`${item.type}:${item.id}`} value={`${item.type}:${item.id}`}>
-                      {item.type === 'bill' ? '📅 Conta Fixa' : item.type === 'installment' ? '💳 Parcelamento' : '📝 Despesa'}: {item.title} — {formatCurrency(item.valor)}
+                      {item.type === 'bill' ? '📅 Conta' : item.type === 'installment' ? '💳 Parc.' : '📝 Despesa'}: {item.title} — {formatCurrency(item.valor)}
                     </option>
                   ))}
                 </optgroup>
@@ -340,25 +338,27 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
 
           {/* Account Title Field for Direct Baixa */}
           <div className="space-y-1">
-            <label className="block text-xs font-semibold text-slate-200 flex items-center gap-1">
-              <Edit3 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <label className="block text-[11px] font-semibold text-slate-200 flex items-center gap-1">
+              <Edit3 className="w-3 h-3 text-emerald-400 shrink-0" />
               Nome da Conta / Descrição da Baixa *
             </label>
             <Input
               placeholder="Ex: Supermercado, Aluguel, Oficina..."
               value={nomeContaCustom}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNomeContaCustom(e.target.value)}
+              className="py-1.5 text-xs"
             />
           </div>
 
-          {/* Detailed Transaction Fields - 2 Cols even on Mobile */}
-          <div className="grid grid-cols-2 gap-2.5 pt-1 border-t border-slate-800/80">
+          {/* Compact Grid: Valor + Data */}
+          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
             <Input
               type="number"
               step="0.01"
-              label="Valor Pago (R$) *"
+              label="Valor (R$) *"
               value={valor}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValor(parseFloat(e.target.value) || 0)}
+              className="py-1.5 text-xs"
             />
 
             <Input
@@ -366,19 +366,22 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
               label="Data *"
               value={data}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData(e.target.value)}
+              className="py-1.5 text-xs"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* Compact Grid: Favorecido + Categoria */}
+          <div className="grid grid-cols-2 gap-2">
             <Input
-              label="Favorecido / Recebedor *"
+              label="Favorecido *"
               value={favorecido}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFavorecido(e.target.value)}
+              className="py-1.5 text-xs"
             />
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-semibold text-slate-300">Categoria *</label>
+                <label className="block text-[11px] font-semibold text-slate-300">Categoria *</label>
                 <button
                   type="button"
                   onClick={() => setIsCustomCategory(!isCustomCategory)}
@@ -391,13 +394,14 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
 
               {isCustomCategory ? (
                 <Input
-                  placeholder="Nova categoria..."
+                  placeholder="Nova..."
                   value={customCategoryName}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setCustomCategoryName(e.target.value);
                     setCategoria(e.target.value);
                   }}
-                  icon={<Tag className="w-3.5 h-3.5" />}
+                  icon={<Tag className="w-3 h-3" />}
+                  className="py-1.5 text-xs"
                 />
               ) : (
                 <select
@@ -409,7 +413,7 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
                       setCategoria(e.target.value);
                     }
                   }}
-                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-950/80 border border-slate-800 rounded-lg px-2 py-1.5 text-[11px] text-slate-100 focus:outline-none focus:border-emerald-500"
                 >
                   {expenseCategories.map((c) => (
                     <option key={c.id} value={c.nome}>
