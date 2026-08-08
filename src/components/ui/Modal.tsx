@@ -46,15 +46,18 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 pb-16 sm:pb-4 bg-slate-950/85 backdrop-blur-sm animate-fade-in overflow-hidden"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-fade-in overflow-hidden"
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidthClasses} bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 glass-card my-auto max-h-[calc(100dvh-4.5rem)] sm:max-h-[85vh]`}
+        className={`w-full ${maxWidthClasses} bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 glass-card max-h-[85dvh] max-h-[85vh] sm:max-h-[85vh]`}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile handle indicator */}
+        <div className="sm:hidden w-12 h-1 bg-slate-700/60 rounded-full mx-auto mt-2.5 shrink-0" />
+
         {/* Header */}
-        <div className="flex items-center justify-between px-3.5 sm:px-5 py-2.5 sm:py-3.5 border-b border-slate-800/80 bg-slate-950/40 shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-800/80 bg-slate-950/40 shrink-0">
           <div className="pr-2">
             <h3 className="text-sm sm:text-base font-bold text-slate-100 leading-tight">{title}</h3>
             {subtitle && <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 leading-snug">{subtitle}</p>}
@@ -70,13 +73,13 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Content Body - Responsive & Scrollable in Middle */}
-        <div className="p-3 sm:p-5 overflow-y-auto min-h-0 flex-1 touch-pan-y">
+        <div className="p-4 sm:p-5 overflow-y-auto min-h-0 flex-1 touch-pan-y space-y-3">
           {children}
         </div>
 
-        {/* Fixed Footer at Bottom of Card */}
+        {/* Fixed Footer at Bottom of Card - ALWAYS 100% VISIBLE */}
         {footer && (
-          <div className="px-3.5 sm:px-5 py-2.5 sm:py-3 border-t border-slate-800/80 bg-slate-950/80 shrink-0">
+          <div className="px-4 sm:px-5 py-3.5 border-t border-slate-800/90 bg-slate-950/95 shrink-0 pb-8 sm:pb-3.5 z-20">
             {footer}
           </div>
         )}

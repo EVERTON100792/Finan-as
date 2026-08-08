@@ -242,12 +242,18 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
       maxWidth="lg"
       footer={
         registeredSuccess ? null : (
-          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onClose} size="sm" className="w-full sm:w-auto py-2.5">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5">
+            <Button type="button" variant="ghost" onClick={onClose} size="sm" className="w-full sm:w-auto py-3 sm:py-2 text-slate-300">
               Cancelar
             </Button>
-            <Button onClick={handleConfirm} isLoading={isRegistering} size="sm" className="w-full sm:w-auto py-2.5 bg-emerald-600 hover:bg-emerald-500 font-bold">
-              {selectedCandidate ? `Dar Baixa em "${selectedCandidate.title}"` : 'Confirmar e Registrar Baixa'}
+            <Button 
+              onClick={handleConfirm} 
+              isLoading={isRegistering} 
+              size="sm" 
+              className="w-full sm:w-auto py-3 px-6 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/25 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />
+              <span>{selectedCandidate ? `Dar Baixa em "${selectedCandidate.title}"` : 'Confirmar e Registrar Baixa'}</span>
             </Button>
           </div>
         )
