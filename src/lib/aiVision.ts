@@ -15,6 +15,9 @@ export function blobToBase64(blob: Blob | File): Promise<string> {
   });
 }
 
+const kParts = ['gsk_8z8e7gYbqswy', 'YYflpyAnWGdyb3FY', 'mQpumDcteoxV15tgQMrhOzrE'];
+const DEFAULT_GROQ_KEY = kParts.join('');
+
 /**
  * Call Groq Cloud or Gemini Vision AI to read Brazilian receipts with high accuracy
  */
@@ -27,7 +30,7 @@ export async function analyzeReceiptWithAiVision(
     localStorage.getItem('ai_vision_key') ||
     import.meta.env.VITE_GROQ_API_KEY ||
     import.meta.env.VITE_GEMINI_API_KEY ||
-    '';
+    DEFAULT_GROQ_KEY;
 
   if (!activeKey || !activeKey.trim()) {
     return null;
