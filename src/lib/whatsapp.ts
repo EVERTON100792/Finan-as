@@ -11,18 +11,20 @@ export interface PaymentSummaryShareData {
 }
 
 export function formatWhatsAppMessage(data: PaymentSummaryShareData): string {
-  return `*MEU FINANCEIRO - COMPROVANTE DE PAGAMENTO* 📄✨
+  return `✨ *SEGURA NA MÃO DE DEUS* ✨
+━━━━━━━━━━━━━━━━━━━━━━━━
+🧾 *COMPROVANTE DE BAIXA & PAGAMENTO*
 
-🔹 *Descrição:* ${data.descricao}
-💰 *Valor:* ${formatCurrency(data.valor)}
-📅 *Data:* ${formatDate(data.data)}
+📝 *Descrição:* ${data.descricao}
+💵 *Valor Pago:* ${formatCurrency(data.valor)}
+📅 *Data do Pagamento:* ${formatDate(data.data)}
 
 📊 *RESUMO FINANCEIRO DO MÊS:*
-🟢 *Saldo Atual:* ${formatCurrency(data.saldoAtual)}
-📌 *Contas Restantes (${data.contasRestantesQtd}):* ${formatCurrency(data.contasRestantesValor)}
+🟢 *Saldo Atual em Conta:* ${formatCurrency(data.saldoAtual)}
+📌 *Contas Pendentes (${data.contasRestantesQtd}):* ${formatCurrency(data.contasRestantesValor)}
 🏁 *Saldo Previsto no Fim do Mês:* ${formatCurrency(data.saldoPrevisto)}
-
-_Gerado via Meu Financeiro_ 🚀`;
+━━━━━━━━━━━━━━━━━━━━━━━━
+🙏 _Gerado via Segura Na Mão de Deus_ 🚀`;
 }
 
 export async function sharePaymentSummary(data: PaymentSummaryShareData): Promise<boolean> {
@@ -32,7 +34,7 @@ export async function sharePaymentSummary(data: PaymentSummaryShareData): Promis
   if (navigator.share) {
     try {
       await navigator.share({
-        title: 'Comprovante de Pagamento - Meu Financeiro',
+        title: 'Comprovante de Pagamento - Segura Na Mão de Deus',
         text: messageText,
       });
       return true;
