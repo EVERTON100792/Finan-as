@@ -39,9 +39,16 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
   let banco: string | undefined;
   let tipo_transacao: string | undefined = 'PIX / Transferência';
   let num_transacao: string | undefined;
+  let categoria_sugerida: string | undefined;
+
+  // Detectar se é Cupom Fiscal / Nota Fiscal / Recibo Físico
+  const isCupomFiscal = /cupom\s*fiscal|nfc-?e|sat|extrato\s*n|nota\s*fiscal|danfe|comprovante\s*de\s*venda|recibo\s*de\s*compra/i.test(text);
+  if (isCupomFiscal) {
+    tipo_transacao = 'Cupom Fiscal / Nota Fiscal';
+  }
 
   // 1. Extrair Valor
-  const valorRegex = /(?:R\$\s*|VALOR\s*:?\s*R\$\s*|TOTAL\s*:?\s*R\$\s*|VALOR PAGO\s*:?\s*R\$\s*)([\d\.\,]+)/i;
+  const valorRegex = /(?:VALOR\s*TOTAL\s*:?\s*R\$\s*|TOTAL\s*R\$\s*|VALOR\s*PAGO\s*:?\s*R\$\s*|TOTAL\s*A\s*PAGAR\s*:?\s*R\$\s*|VALOR\s*:?\s*R\$\s*|TOTAL\s*:?\s*R\$\s*|R\$\s*)([\d\.\,]+)/i;
   const valorMatch = text.match(valorRegex);
   
   if (valorMatch && valorMatch[1]) {
@@ -57,7 +64,7 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
     }
   }
 
-  // 2. Extrair Data (DD/MM/YYYY)
+  // 2. Extrair Data (DD/MM/YYYY ou YYYY-MM-DD)
   const dataRegex = /\b(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})\b/;
   const dataMatch = text.match(dataRegex);
   if (dataMatch) {
@@ -79,14 +86,24 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
     hora = horaMatch[0];
   }
 
-  // 4. Extrair Favorecido / Destinatário / Recebedor
-  const favorecidoRegex = /(?:FAVORECIDO|DESTINATARIO|RECEBEDOR|NOME DO RECEBEDOR|PARA|NOME)\s*:?\s*([A-Za-zÀ-ÖØ-öø-ÿ\s]{3,40})/i;
+  // 4. Extrair Favorecido / Nome do Estabelecimento Comercial
+  const favorecidoRegex = /(?:FAVORECIDO|DESTINATARIO|RECEBEDOR|NOME DO RECEBEDOR|PARA|RAZ[AÃ]O SOCIAL|ESTABELECIMENTO|LOJA|NOME)\s*:?\s*([A-Za-zÀ-ÖØ-öø-ÿ0-9\s\.\-]{3,40})/i;
   const favMatch = text.match(favorecidoRegex);
   if (favMatch && favMatch[1]) {
     favorecido = favMatch[1].trim();
+  } else {
+    // Para cupons fiscais e notas físicas, o nome do estabelecimento fica nas primeiras linhas
+    const boilerplatePatterns = /cupom|fiscal|extrato|nfc-?e|sat|cnpj|ie|im|danfe|comprovante|autentica|via|cliente/i;
+    for (let i = 0; i < Math.min(6, lines.length); i++) {
+      const line = lines[i];
+      if (line.length >= 3 && !boilerplatePatterns.test(line) && !/^\d+$/.test(line)) {
+        favorecido = line.substring(0, 40).trim();
+        break;
+      }
+    }
   }
 
-  // 5. Extrair Banco
+  // 5. Extrair Banco (se for comprovante bancário)
   const bancosConhecidos = [
     'Nubank', 'Itaú', 'Itau', 'Bradesco', 'Banco do Brasil', 'BB', 
     'Santander', 'Banco Inter', 'Inter', 'Caixa', 'C6 Bank', 'C6', 
@@ -109,13 +126,34 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
     tipo_transacao = 'Transferência Bancária';
   } else if (/cart[aã]o|cr[eé]dito|d[eé]bito/i.test(text)) {
     tipo_transacao = 'Cartão de Crédito / Débito';
+  } else if (isCupomFiscal) {
+    tipo_transacao = 'Cupom Fiscal / Nota Fiscal';
   }
 
   // 7. Número da Transação / Autenticação
-  const numRegex = /(?:AUTENTICA[CÇ][AÃ]O|ID DA TRANSA[CÇ][AÃ]O|TRANSA[CÇ][AÃ]O|NSU|CODIGO)\s*:?\s*([A-Z0-9\.-]{6,40})/i;
+  const numRegex = /(?:AUTENTICA[CÇ][AÃ]O|ID DA TRANSA[CÇ][AÃ]O|TRANSA[CÇ][AÃ]O|NSU|CODIGO|COO|SAT)\s*:?\s*([A-Z0-9\.-]{4,40})/i;
   const numMatch = text.match(numRegex);
   if (numMatch && numMatch[1]) {
     num_transacao = numMatch[1].trim();
+  }
+
+  // 8. Auto-Categorização Inteligente com base no texto lido
+  const lowerText = text.toLowerCase();
+
+  if (/supermercado|mercado|hortifruti|carrefour|assai|atacadao|extra|pao de acucar|sacolao|padaria|panificadora|açougue|acougue|lanchonete|restaurante|mcdonald|burger|pizza|sorvet|alimento|ifood|hipermercado|atacadista/i.test(lowerText)) {
+    categoria_sugerida = 'Alimentação / Mercado';
+  } else if (/oficina|mecanica|mecânica|conserto|auto\s*pe[çc]as|troca\s*de\s*oleo|pneu|funilaria|reparo|autoeletrica/i.test(lowerText)) {
+    categoria_sugerida = 'Manutenção & Reparos';
+  } else if (/posto|shell|ipiranga|petrobras|combustivel|gasolina|etanol|diesel|estacionamento|pedagio|uber|99pop/i.test(lowerText)) {
+    categoria_sugerida = 'Transporte / Combustível';
+  } else if (/farmacia|drogaria|drogasil|pague\s*menos|droga|medico|médico|hospital|laboratorio|exame|dentista|clinica|remedio|medicamento/i.test(lowerText)) {
+    categoria_sugerida = 'Saúde & Medicamentos';
+  } else if (/enel|light|cemig|copel|sabesp|sanepar|aluguel|condominio|internet|claro|vivo|tim|oi|energia|luz|agua/i.test(lowerText)) {
+    categoria_sugerida = 'Contas da Casa (Água, Luz, Net)';
+  } else if (/cinema|teatro|show|netflix|spotify|steam|ingresso|parque|lazer|viagem|hotel/i.test(lowerText)) {
+    categoria_sugerida = 'Lazer & Entretenimento';
+  } else {
+    categoria_sugerida = 'Alimentação / Mercado';
   }
 
   return {
@@ -126,6 +164,7 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
     banco,
     tipo_transacao,
     num_transacao,
+    categoria_sugerida,
     raw_text: text,
     confidence,
   };

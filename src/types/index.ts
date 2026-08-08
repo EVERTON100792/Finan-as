@@ -131,6 +131,7 @@ export interface OCRParseResult {
   banco?: string;
   tipo_transacao?: string;
   num_transacao?: string;
+  categoria_sugerida?: string;
   raw_text: string;
   confidence: number;
 }

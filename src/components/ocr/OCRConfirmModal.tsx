@@ -130,6 +130,9 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
       setBanco(ocrData.banco || 'Banco');
       setTipoTransacao(ocrData.tipo_transacao || 'PIX');
       setNumTransacao(ocrData.num_transacao || '');
+      if (ocrData.categoria_sugerida) {
+        setCategoria(ocrData.categoria_sugerida);
+      }
       setNomeContaCustom(fav);
       setRegisteredSuccess(false);
       setMarkedItemTitle(null);
