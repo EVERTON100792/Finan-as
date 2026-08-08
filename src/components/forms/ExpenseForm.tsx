@@ -95,22 +95,25 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, onCancel, i
   };
 
   return (
-    <form onSubmit={handleSubmit(handleValidation)} className="space-y-3">
+    <form onSubmit={handleSubmit(handleValidation)} className="space-y-2.5">
       {duplicateAlert && (
-        <div className="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-2 text-amber-300 text-xs">
+        <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-2 text-amber-300 text-xs">
           <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
           <p className="flex-1 text-[11px] leading-tight">{duplicateAlert}</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Input
-          label="Descrição da Despesa *"
-          placeholder="Ex: Supermercado, Aluguel..."
-          {...register('descricao')}
-          error={errors.descricao?.message}
-        />
+      {/* Descrição */}
+      <Input
+        label="Descrição da Despesa *"
+        placeholder="Ex: Supermercado, Aluguel..."
+        {...register('descricao')}
+        error={errors.descricao?.message}
+        className="py-1.5 text-xs"
+      />
 
+      {/* Grid: Valor + Data */}
+      <div className="grid grid-cols-2 gap-2">
         <Input
           type="number"
           step="0.01"
@@ -118,37 +121,23 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, onCancel, i
           placeholder="0,00"
           {...register('valor')}
           error={errors.valor?.message}
+          className="py-1.5 text-xs"
         />
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input
           type="date"
           label="Data *"
           {...register('data')}
           error={errors.data?.message}
+          className="py-1.5 text-xs"
         />
-
-        <div className="space-y-1">
-          <label className="block text-xs font-semibold text-slate-300">Forma de Pagamento *</label>
-          <select
-            {...register('forma_pagamento')}
-            className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
-          >
-            <option value="pix">PIX</option>
-            <option value="credito">Cartão de Crédito</option>
-            <option value="debito">Cartão de Débito</option>
-            <option value="dinheiro">Dinheiro Espécie</option>
-            <option value="boleto">Boleto Bancário</option>
-            <option value="transferencia">Transferência / TED</option>
-          </select>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1">
+      {/* Grid: Categoria + Pagamento */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-0.5">
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-semibold text-slate-300">Categoria *</label>
+            <label className="block text-[11px] font-semibold text-slate-300">Categoria *</label>
             <button
               type="button"
               onClick={() => setIsCustomCategory(!isCustomCategory)}
@@ -161,13 +150,14 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, onCancel, i
 
           {isCustomCategory ? (
             <Input
-              placeholder="Nova categoria..."
+              placeholder="Nova..."
               value={customCategoryName}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setCustomCategoryName(e.target.value);
                 setValue('categoria', e.target.value);
               }}
-              icon={<Tag className="w-3.5 h-3.5" />}
+              icon={<Tag className="w-3 h-3" />}
+              className="py-1.5 text-xs"
             />
           ) : (
             <select
@@ -179,31 +169,50 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, onCancel, i
                   setValue('categoria', e.target.value);
                 }
               }}
-              className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+              className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-2 py-1.5 text-[11px] text-slate-100 focus:outline-none focus:border-emerald-500"
             >
               {expenseCategories.map((c) => (
                 <option key={c.id} value={c.nome}>
                   {c.nome}
                 </option>
               ))}
-              <option value="__new__">➕ Nova Categoria...</option>
+              <option value="__new__">➕ Nova...</option>
             </select>
           )}
           {errors.categoria && <p className="text-[10px] text-rose-400">{errors.categoria.message}</p>}
         </div>
 
-        <Input
-          label="Observações (opcional)"
-          placeholder="Notas ou detalhes..."
-          {...register('observacoes')}
-        />
+        <div className="space-y-0.5">
+          <label className="block text-[11px] font-semibold text-slate-300">Pagamento *</label>
+          <select
+            {...register('forma_pagamento')}
+            className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-2 py-1.5 text-[11px] text-slate-100 focus:outline-none focus:border-emerald-500"
+          >
+            <option value="pix">PIX</option>
+            <option value="credito">Crédito</option>
+            <option value="debito">Débito</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="boleto">Boleto</option>
+            <option value="transferencia">TED / Transferência</option>
+          </select>
+        </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-800/60">
-        <Button type="button" variant="ghost" onClick={onCancel} size="sm">
+      {/* Observações */}
+      <Input
+        label="Observações (opcional)"
+        placeholder="Notas ou detalhes..."
+        {...register('observacoes')}
+        className="py-1.5 text-xs"
+      />
+
+      {/* Action Buttons */}
+      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/60">
+        <Button type="button" variant="ghost" onClick={onCancel} size="sm" className="py-2 px-3 text-xs">
           Cancelar
         </Button>
-        <Button type="submit" isLoading={isSubmitting} size="sm" variant={duplicateAlert ? 'danger' : 'primary'}>
+
+        <Button type="submit" isLoading={isSubmitting} size="sm" variant={duplicateAlert ? 'danger' : 'primary'} className="py-2 px-4 text-xs font-bold">
           {duplicateAlert ? 'Confirmar Duplicado' : 'Salvar Despesa'}
         </Button>
       </div>
