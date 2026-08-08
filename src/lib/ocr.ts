@@ -119,13 +119,16 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
   }
 
   // 1. Extrair Valor - Prioridade Máxima para "VALOR A PAGAR" e "VALOR PAGO"
-  // Estratégia A: Escanear linhas contendo "valor a pagar", "valor pago" ou "total a pagar"
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (/valor\s*a?\s*pagar|valor\s*pago|total\s*a?\s*pagar|valor\s*l[ií]quido/i.test(line)) {
+  // Filtrar linhas de tributos/impostos para nunca contaminar a leitura do valor real
+  const linesWithoutTaxes = lines.filter(l => !/tributo|imposto|lei\s*12|ibpt|federal|estadual|municipal/i.test(l));
+
+  // Estratégia A: Escanear linhas contendo frases exatas como "VALOR A PAGAR", "VALOR PAGO" ou "TOTAL A PAGAR"
+  for (let i = 0; i < linesWithoutTaxes.length; i++) {
+    const line = linesWithoutTaxes[i];
+    if (/\b(?:valor\s+a\s+pagar|valor\s+pago|total\s+a\s+pagar|total\s+pago|liquido\s+a\s+pagar|valor\s+liquido)\b/i.test(line)) {
       // Procurar valores no formato 00,00 nesta linha ou nas próximas 3 linhas
-      for (let j = i; j < Math.min(i + 4, lines.length); j++) {
-        const numbers = lines[j].match(/\b\d{1,4}[\,\.]\d{2}\b/g);
+      for (let j = i; j < Math.min(i + 4, linesWithoutTaxes.length); j++) {
+        const numbers = linesWithoutTaxes[j].match(/\b\d{1,4}[\,\.]\d{2}\b/g);
         if (numbers && numbers.length > 0) {
           const candidate = cleanAmount(numbers[numbers.length - 1]);
           if (candidate > 0) {
@@ -138,11 +141,11 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
     }
   }
 
-  // Estratégia B: Se não encontrou por proximidade de linha, testar por Regex Multilinha
+  // Estratégia B: Se não encontrou por frase exata em linha, testar por Regex Multilinha Estrita
   if (!valor || valor === 0) {
     const patternsValor = [
-      /(?:VALOR\s*A?\s*PAGAR|VALOR\s*PAGO|TOTAL\s*A?\s*PAGAR|VALOR\s*L[IÍ]QUIDO)[\s\S]{0,60}?([\d]{1,4}[\,\.][\d]{2})/i,
-      /(?:VALOR\s*TOTAL|TOTAL\s*R\$|VALOR\s*RECEBIDO)[\s\S]{0,60}?([\d]{1,4}[\,\.][\d]{2})/i,
+      /(?:VALOR\s+A\s+PAGAR|VALOR\s+PAGO|TOTAL\s+A\s+PAGAR|VALOR\s+L[IÍ]QUIDO)[\s\S]{0,60}?([\d]{1,4}[\,\.][\d]{2})/i,
+      /(?:VALOR\s+TOTAL|TOTAL\s+R\$|VALOR\s+RECEBIDO)[\s\S]{0,60}?([\d]{1,4}[\,\.][\d]{2})/i,
       /R\$\s*([\d]{1,4}[\,\.][\d]{2})/i,
     ];
 
@@ -158,9 +161,10 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
     }
   }
 
-  // Fallback C: Procurar o maior valor no padrão de moeda R$ XX,XX ou XX,XX
+  // Fallback C: Procurar o valor no padrão de moeda R$ XX,XX ou XX,XX excluindo impostos
   if (!valor || valor === 0) {
-    const matches = text.match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
+    const textWithoutTaxes = linesWithoutTaxes.join('\n');
+    const matches = textWithoutTaxes.match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
     if (matches && matches.length > 0) {
       const parsedValues = matches.map(m => cleanAmount(m)).filter(v => v > 0);
       if (parsedValues.length > 0) {
@@ -180,7 +184,10 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
     const dataCurtaMatch = text.match(dataCurtaRegex);
     if (dataCurtaMatch) {
       const [, day, month, yearShort] = dataCurtaMatch;
-      data = `20${yearShort}-${month}-${day}`;
+      // Validar ano de 2 dígitos razoável (20 a 30)
+      const yrNum = parseInt(yearShort, 10);
+      const fullYear = yrNum >= 20 && yrNum <= 35 ? `20${yearShort}` : `2026`;
+      data = `${fullYear}-${month}-${day}`;
     }
   }
 
@@ -198,12 +205,15 @@ export function parseReceiptText(rawText: string, confidence: number = 90): OCRP
     favorecido = favMatch[1].trim();
   } else {
     // Para cupons fiscais e notas físicas, o nome do estabelecimento fica nas primeiras linhas
-    const boilerplatePatterns = /cupom|fiscal|extrato|nfc-?e|sat|cnpj|ie|im|danfe|comprovante|autentica|via|cliente/i;
-    for (let i = 0; i < Math.min(6, lines.length); i++) {
+    const boilerplatePatterns = /cupom|fiscal|extrato|nfc-?e|sat|cnpj|ie|im|danfe|comprovante|autentica|via|cliente|documento|auxiliar|consumidor/i;
+    for (let i = 0; i < Math.min(8, lines.length); i++) {
       const line = lines[i];
       if (line.length >= 3 && !boilerplatePatterns.test(line) && !/^\d+$/.test(line)) {
-        favorecido = line.substring(0, 40).trim();
-        break;
+        const cleaned = line.replace(/[^\w\s\.\-À-ÖØ-öø-ÿ]/gi, '').substring(0, 40).trim();
+        if (cleaned.length >= 4) {
+          favorecido = cleaned;
+          break;
+        }
       }
     }
   }

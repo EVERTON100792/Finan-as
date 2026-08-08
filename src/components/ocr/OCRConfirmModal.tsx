@@ -259,24 +259,7 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
       title="Validar & Dar Baixa (OCR)"
       subtitle="Confirme os dados extraídos para registrar a baixa"
       maxWidth="sm"
-      footer={
-        registeredSuccess ? null : (
-          <div className="flex items-center justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onClose} size="sm" className="py-2 px-3 text-xs text-slate-300">
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleConfirm} 
-              isLoading={isRegistering} 
-              size="sm" 
-              className="flex-1 sm:flex-none py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-extrabold text-xs shadow-lg shadow-emerald-500/25 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
-            >
-              <CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />
-              <span>{selectedCandidate ? `Dar Baixa` : 'Confirmar e Registrar Baixa'}</span>
-            </Button>
-          </div>
-        )
-      }
+      footer={null}
     >
       {registeredSuccess ? (
         <div className="text-center py-4 space-y-3 animate-fade-in">
