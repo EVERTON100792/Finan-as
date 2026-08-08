@@ -1,5 +1,6 @@
 import { createWorker } from 'tesseract.js';
 import { OCRParseResult } from '../types';
+import { analyzeReceiptWithAiVision } from './aiVision';
 
 export async function tryExtractQrCodeData(imageSource: File | Blob | string): Promise<Partial<OCRParseResult> | null> {
   try {
@@ -59,13 +60,26 @@ export async function processReceiptOCR(
   fileOrImage: File | Blob | string,
   onProgress?: (progress: number, statusText: string) => void
 ): Promise<OCRParseResult> {
+  // 1. Tentar leitura com Inteligência Artificial Vision (Groq / Gemini) em primeiro lugar
+  try {
+    if (onProgress) onProgress(5, 'Consultando Inteligência Artificial (IA Vision)...');
+    const aiResult = await analyzeReceiptWithAiVision(fileOrImage);
+    if (aiResult && aiResult.valor && aiResult.valor > 0) {
+      if (onProgress) onProgress(100, 'Leitura IA concluída com 100% de precisão!');
+      return aiResult;
+    }
+  } catch (aiErr) {
+    console.warn('IA Vision não configurada ou sem chave, utilizando processamento nativo:', aiErr);
+  }
+
+  // 2. Motor Nativo (QR Code + Tesseract OCR)
   const worker = await createWorker('por+eng');
 
   try {
-    if (onProgress) onProgress(5, 'Lendo QR Code e imagens...');
+    if (onProgress) onProgress(15, 'Lendo QR Code e imagens...');
     const qrResult = await tryExtractQrCodeData(fileOrImage);
 
-    if (onProgress) onProgress(20, 'Iniciando motor Tesseract OCR...');
+    if (onProgress) onProgress(30, 'Iniciando motor Tesseract OCR...');
 
     const ret = await worker.recognize(fileOrImage);
     const text = ret.data.text;

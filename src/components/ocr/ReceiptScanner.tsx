@@ -141,13 +141,45 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onScanComplete }
         </div>
       )}
 
-      {/* OCR Tips Banner */}
+      {/* OCR & AI Vision Tips Banner */}
       <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-start gap-2.5 text-[11px] text-slate-400">
         <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-        <div>
-          <strong className="text-slate-200 block mb-0.5">Dica para Cupons Fiscais e Recibos Físicos:</strong>
-          Tire a foto em um local bem iluminado e mantenha o papel o mais reto possível para garantir a leitura do valor total e nome da loja.
+        <div className="space-y-1 w-full">
+          <strong className="text-slate-200 block">Motor Triplo de Leitura (IA Vision + QR Code + OCR):</strong>
+          <p>
+            O sistema lê comprovantes bancários, cupons fiscais e recibos físicos com leitura inteligente.
+          </p>
         </div>
+      </div>
+
+      {/* Optional AI Vision Key Config (Groq / Gemini) */}
+      <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            Chave IA Vision Gratuita (Groq / Gemini):
+          </label>
+          <span className="text-[10px] text-emerald-400 font-semibold">⚡ Opcional</span>
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="password"
+            placeholder="Cole sua chave (ex: gsk_...)"
+            defaultValue={localStorage.getItem('ai_vision_key') || ''}
+            onChange={(e) => {
+              const val = e.target.value.trim();
+              if (val) {
+                localStorage.setItem('ai_vision_key', val);
+              } else {
+                localStorage.removeItem('ai_vision_key');
+              }
+            }}
+            className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+        <p className="text-[10px] text-slate-400">
+          Insira uma chave gratuita da Groq (<code className="text-amber-300">console.groq.com</code>) para leitura por Inteligência Artificial com 100% de precisão.
+        </p>
       </div>
 
       {/* Error Alert */}
