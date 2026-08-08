@@ -40,7 +40,9 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
 
   const expenseCategories = categories.filter((c) => c.tipo === 'despesa' || c.tipo === 'ambos');
 
-  const [valor, setValor] = useState<number>(ocrData?.valor || 0);
+  const [valorInput, setValorInput] = useState<string>(
+    ocrData?.valor ? String(ocrData.valor).replace('.', ',') : ''
+  );
   const [data, setData] = useState<string>(ocrData?.data || getTodayString());
   const [hora, setHora] = useState<string>(ocrData?.hora || '12:00');
   const [favorecido, setFavorecido] = useState<string>(ocrData?.favorecido || 'Desconhecido');
@@ -62,10 +64,21 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
   const [registeredSuccess, setRegisteredSuccess] = useState(false);
   const [markedItemTitle, setMarkedItemTitle] = useState<string | null>(null);
 
+  // Compute numeric valor safely for matching and display
+  const numericValor = useMemo(() => {
+    if (!valorInput) return 0;
+    const cleanStr = String(valorInput)
+      .replace(/[^\d,\.]/g, '')
+      .replace(/\.(?=\d{3})/g, '')
+      .replace(',', '.');
+    const num = parseFloat(cleanStr);
+    return isNaN(num) ? 0 : num;
+  }, [valorInput]);
+
   // Compute all potential pending items (bills, installments, expenses)
   const allPendingItems: MatchCandidate[] = useMemo(() => {
     const list: MatchCandidate[] = [];
-    const targetVal = valor || ocrData?.valor || 0;
+    const targetVal = numericValor || ocrData?.valor || 0;
 
     // 1. Contas Fixas Pendentes
     bills.filter((b) => b.status !== 'paga').forEach((b) => {
@@ -115,15 +128,15 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
     // Sort: exact/closest matches first
     list.sort((a, b) => a.diff - b.diff);
     return list;
-  }, [valor, ocrData, bills, installments, expenses]);
+  }, [numericValor, ocrData, bills, installments, expenses]);
 
   // Sync state when ocrData changes
   useEffect(() => {
     if (ocrData) {
-      const val = ocrData.valor || 0;
+      const val = ocrData.valor ? String(ocrData.valor).replace('.', ',') : '';
       const fav = ocrData.favorecido || 'Favorecido Extraído';
 
-      setValor(val);
+      setValorInput(val);
       setData(ocrData.data || getTodayString());
       setHora(ocrData.hora || '12:00');
       setFavorecido(fav);
@@ -160,7 +173,7 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
   const handleSelectCandidate = (candidate: MatchCandidate | null) => {
     setSelectedCandidate(candidate);
     if (candidate) {
-      setValor(candidate.valor);
+      setValorInput(String(candidate.valor).replace('.', ','));
       setCategoria(candidate.category);
       setNomeContaCustom(candidate.title);
     } else {
@@ -182,7 +195,7 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
   const handleConfirm = async () => {
     setIsRegistering(true);
 
-    const numericValor = parseNumeric(valor);
+    const numericValor = parseNumeric(valorInput);
     if (numericValor <= 0) {
       alert('Por favor, verifique o valor pago antes de confirmar (deve ser maior que zero).');
       setIsRegistering(false);
@@ -243,7 +256,7 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
   const handleShareWhatsApp = () => {
     sharePaymentSummary({
       descricao: markedItemTitle ? `Baixa: ${markedItemTitle}` : `Comprovante ${favorecido}`,
-      valor: valor,
+      valor: numericValor,
       data: data,
       saldoAtual: stats?.saldoAtual ?? 0,
       contasRestantesValor: stats?.contasPendentesValor ?? 0,
@@ -294,7 +307,7 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
           <div className="flex items-center justify-between px-2.5 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[11px] text-emerald-400">
             <div className="flex items-center gap-1.5 truncate">
               <Sparkles className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">Lido: <strong>{formatCurrency(valor)}</strong> • {favorecido}</span>
+              <span className="truncate">Lido: <strong>{formatCurrency(numericValor)}</strong> • {favorecido}</span>
             </div>
             {selectedCandidate && (
               <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold shrink-0 ml-1">
@@ -322,11 +335,18 @@ export const OCRConfirmModal: React.FC<OCRConfirmModalProps> = ({
             <div className="space-y-0.5">
               <label className="block text-[10px] font-semibold text-slate-300">Valor (R$) *</label>
               <Input
-                type="number"
-                step="0.01"
-                value={valor}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValor(parseFloat(e.target.value) || 0)}
-                className="py-1 px-2 text-xs bg-slate-950"
+                type="text"
+                inputMode="decimal"
+                placeholder="0,00"
+                value={valorInput}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  let val = e.target.value;
+                  if (/^0[0-9]/.test(val) && val !== '0,' && val !== '0.') {
+                    val = val.replace(/^0+/, '');
+                  }
+                  setValorInput(val);
+                }}
+                className="py-1 px-2 text-xs bg-slate-950 font-bold text-emerald-400"
               />
             </div>
 
