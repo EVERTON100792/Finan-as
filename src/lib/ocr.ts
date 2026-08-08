@@ -1,6 +1,60 @@
 import { createWorker } from 'tesseract.js';
 import { OCRParseResult } from '../types';
 
+export async function tryExtractQrCodeData(imageSource: File | Blob | string): Promise<Partial<OCRParseResult> | null> {
+  try {
+    if ('BarcodeDetector' in window) {
+      const barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
+      let imgElement: HTMLImageElement | null = null;
+
+      if (typeof imageSource === 'string') {
+        imgElement = new Image();
+        imgElement.src = imageSource;
+        await new Promise(r => imgElement!.onload = r);
+      } else {
+        const url = URL.createObjectURL(imageSource);
+        imgElement = new Image();
+        imgElement.src = url;
+        await new Promise(r => imgElement!.onload = r);
+        URL.revokeObjectURL(url);
+      }
+
+      if (imgElement) {
+        const barcodes = await barcodeDetector.detect(imgElement);
+        if (barcodes && barcodes.length > 0) {
+          const qrText = barcodes[0].rawValue;
+          console.log('✨ QR Code Lido com Sucesso:', qrText);
+          
+          const qrData: Partial<OCRParseResult> = {
+            num_transacao: qrText,
+            tipo_transacao: 'NFC-e / Cupom Fiscal (QR Code Lido)',
+          };
+
+          // Extrair valor da URL do QR Code NFC-e (vVal=XX.XX ou |XX.XX| ou vPag=XX.XX)
+          const valMatch = qrText.match(/(?:vVal|vPag|valor|val)=([\d\.]+)/i) || qrText.match(/\|([\d]{1,4}\.\d{2})\|/);
+          if (valMatch && valMatch[1]) {
+            const parsed = parseFloat(valMatch[1]);
+            if (!isNaN(parsed) && parsed > 0) {
+              qrData.valor = parsed;
+            }
+          }
+
+          // Extrair data do QR Code NFC-e (dhEmi=YYYY-MM-DD ou AAAAMMDD)
+          const dataMatch = qrText.match(/(?:dhEmi|data)=20(\d{2})[_\-]?(\d{2})[_\-]?(\d{2})/i);
+          if (dataMatch) {
+            qrData.data = `20${dataMatch[1]}-${dataMatch[2]}-${dataMatch[3]}`;
+          }
+
+          return qrData;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('BarcodeDetector não suportado ou erro ao ler QR Code:', e);
+  }
+  return null;
+}
+
 export async function processReceiptOCR(
   fileOrImage: File | Blob | string,
   onProgress?: (progress: number, statusText: string) => void
@@ -8,7 +62,10 @@ export async function processReceiptOCR(
   const worker = await createWorker('por+eng');
 
   try {
-    if (onProgress) onProgress(10, 'Iniciando motor Tesseract OCR...');
+    if (onProgress) onProgress(5, 'Lendo QR Code e imagens...');
+    const qrResult = await tryExtractQrCodeData(fileOrImage);
+
+    if (onProgress) onProgress(20, 'Iniciando motor Tesseract OCR...');
 
     const ret = await worker.recognize(fileOrImage);
     const text = ret.data.text;
@@ -17,6 +74,20 @@ export async function processReceiptOCR(
     if (onProgress) onProgress(80, 'Analisando dados do comprovante...');
 
     const result = parseReceiptText(text, confidence);
+
+    // Se detectou dados 100% exatos no QR Code, mesclar no resultado final
+    if (qrResult) {
+      if (qrResult.valor && qrResult.valor > 0) {
+        result.valor = qrResult.valor;
+      }
+      if (qrResult.data) {
+        result.data = qrResult.data;
+      }
+      if (qrResult.tipo_transacao) {
+        result.tipo_transacao = qrResult.tipo_transacao;
+      }
+    }
+
     if (onProgress) onProgress(100, 'Processamento concluído!');
 
     await worker.terminate();
